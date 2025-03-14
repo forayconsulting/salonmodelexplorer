@@ -1,9 +1,12 @@
 library(ggplot2)
 library(dplyr)
 library(reshape2)
+library(tidyr)  # Add tidyr for pivot_wider function
 
 # Create a directory for the plots if it doesn't exist
-dir.create("plots", showWarnings = FALSE)
+# Make sure we use an absolute path
+plots_dir <- file.path(getwd(), "examples", "plots")
+dir.create(plots_dir, showWarnings = FALSE, recursive = TRUE)
 
 # Generate example data
 set.seed(123)
@@ -41,7 +44,7 @@ p1 <- ggplot(data, aes(x = s_index, y = productivity, color = county)) +
   )
 
 # Save the plot
-ggsave("plots/productivity_vs_specialization.png", p1, width = 8, height = 6, dpi = 300)
+ggsave(file.path(plots_dir, "productivity_vs_specialization.png"), p1, width = 8, height = 6, dpi = 300)
 
 # Create counterfactual data
 counterfactual_data <- data.frame(
@@ -61,11 +64,13 @@ counterfactual_data <- rbind(
 )
 
 # Convert to wide format for plotting
-cf_data_wide <- spread(counterfactual_data, scenario, value)
+cf_data_wide <- pivot_wider(counterfactual_data, names_from = scenario, values_from = value)
 
 # Create a grouped bar chart
-cf_data_long <- melt(cf_data_wide, id.vars = "county", 
-                     variable.name = "scenario", value.name = "productivity")
+cf_data_long <- pivot_longer(cf_data_wide, 
+                            cols = -county, 
+                            names_to = "scenario", 
+                            values_to = "productivity")
 
 p2 <- ggplot(cf_data_long, aes(x = county, y = productivity, fill = scenario)) +
   geom_bar(stat = "identity", position = position_dodge(width = 0.9), width = 0.8) +
@@ -86,6 +91,6 @@ p2 <- ggplot(cf_data_long, aes(x = county, y = productivity, fill = scenario)) +
   )
 
 # Save the second plot
-ggsave("plots/immigration_effects.png", p2, width = 8, height = 6, dpi = 300)
+ggsave(file.path(plots_dir, "immigration_effects.png"), p2, width = 8, height = 6, dpi = 300)
 
-cat("Example plots have been generated in the 'plots' directory\n")
+cat("Example plots have been generated in the '", plots_dir, "' directory\n", sep="")

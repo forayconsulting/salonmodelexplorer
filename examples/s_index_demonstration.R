@@ -1,10 +1,12 @@
 library(ggplot2)
 library(dplyr)
-library(reshape2)
+library(tidyr)
 library(knitr)
 
 # Create a directory for the plots if it doesn't exist
-dir.create("plots", showWarnings = FALSE)
+# Make sure we use an absolute path
+plots_dir <- file.path(getwd(), "examples", "plots")
+dir.create(plots_dir, showWarnings = FALSE, recursive = TRUE)
 
 # Function to calculate the s-index (task specialization index)
 compute_s_index <- function(B_matrix) {
@@ -53,13 +55,27 @@ specialized_salon <- matrix(
 
 # Create a function to visualize a task assignment matrix
 visualize_task_assignment <- function(matrix, title) {
-  # Create a data frame from the matrix
-  df <- melt(matrix)
-  colnames(df) <- c("Worker", "Task", "Value")
+  # Create a data frame with row and column indices
+  df <- as.data.frame(matrix)
+  df$worker_idx <- 1:nrow(matrix)
   
-  # Add labels
+  # Convert to long format
+  df <- pivot_longer(df, 
+                    cols = -worker_idx,
+                    names_to = "task_idx", 
+                    values_to = "Value")
+  
+  # Clean up the task_idx column
+  df$task_idx <- as.numeric(gsub("V", "", df$task_idx))
+  
+  # Rename and add labels
+  colnames(df)[1:2] <- c("Worker", "Task")
   df$Worker <- paste("Worker", df$Worker)
   df$Task <- paste("Task", df$Task)
+  
+  # Ensure Task and Worker are factors with the correct order
+  df$Task <- factor(df$Task, levels = paste("Task", 1:ncol(matrix)))
+  df$Worker <- factor(df$Worker, levels = paste("Worker", 1:nrow(matrix)))
   
   # Create the heatmap
   ggplot(df, aes(x = Task, y = Worker, fill = Value)) +
@@ -91,9 +107,9 @@ p3 <- visualize_task_assignment(specialized_salon,
                                paste("Highly Specialized Salon (s-index =", round(s_index_spec, 3), ")"))
 
 # Save the plots
-ggsave("plots/generalized_salon.png", p1, width = 8, height = 6, dpi = 300)
-ggsave("plots/partially_specialized_salon.png", p2, width = 8, height = 6, dpi = 300)
-ggsave("plots/specialized_salon.png", p3, width = 8, height = 6, dpi = 300)
+ggsave(file.path(plots_dir, "generalized_salon.png"), p1, width = 8, height = 6, dpi = 300)
+ggsave(file.path(plots_dir, "partially_specialized_salon.png"), p2, width = 8, height = 6, dpi = 300)
+ggsave(file.path(plots_dir, "specialized_salon.png"), p3, width = 8, height = 6, dpi = 300)
 
 # Create a summary data frame for comparison
 summary_data <- data.frame(
@@ -118,7 +134,7 @@ p4 <- ggplot(summary_data, aes(x = Salon_Type, y = S_Index, fill = Salon_Type)) 
   )
 
 # Save the comparison plot
-ggsave("plots/s_index_comparison.png", p4, width = 8, height = 6, dpi = 300)
+ggsave(file.path(plots_dir, "s_index_comparison.png"), p4, width = 8, height = 6, dpi = 300)
 
 # Print the s-index values
 cat("S-Index Demonstration\n")
@@ -126,4 +142,4 @@ cat("====================\n")
 cat("Generalized Salon S-Index:", round(s_index_gen, 4), "\n")
 cat("Partially Specialized Salon S-Index:", round(s_index_part, 4), "\n")
 cat("Highly Specialized Salon S-Index:", round(s_index_spec, 4), "\n")
-cat("\nS-index visualizations have been generated in the 'plots' directory\n")
+cat("\nS-index visualizations have been generated in the '", plots_dir, "' directory\n", sep="")

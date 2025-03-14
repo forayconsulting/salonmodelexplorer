@@ -17,7 +17,8 @@ cat("=======================================================\n\n")
 # Install required packages if needed
 required_packages <- c("shiny", "shinydashboard", "plotly", "data.table", 
                       "lubridate", "rootSolve", "stringr", "lamW", "pracma", 
-                      "BB", "SQUAREM", "DT", "dplyr", "ggplot2", "reshape2")
+                      "BB", "SQUAREM", "DT", "dplyr", "ggplot2", "reshape2",
+                      "markdown", "rmarkdown")
 
 missing_packages <- required_packages[!required_packages %in% installed.packages()[,"Package"]]
 
@@ -41,9 +42,10 @@ if (file.exists("run.R")) {
 # Run example scripts to generate sample plots
 cat("Generating example plots...\n")
 tryCatch({
-  source("examples/productivity_vs_specialization.R")
-  source("examples/wage_effects.R")
-  source("examples/s_index_demonstration.R")
+  # Use full paths to ensure the scripts are found
+  source(file.path(getwd(), "examples", "productivity_vs_specialization.R"))
+  source(file.path(getwd(), "examples", "wage_effects.R"))
+  source(file.path(getwd(), "examples", "s_index_demonstration.R"))
   cat("Example plots generated successfully.\n")
 }, error = function(e) {
   cat("Error generating example plots:", e$message, "\n")

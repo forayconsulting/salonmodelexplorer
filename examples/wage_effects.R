@@ -1,9 +1,11 @@
 library(ggplot2)
-library(reshape2)
 library(dplyr)
+library(tidyr)
 
 # Create a directory for the plots if it doesn't exist
-dir.create("plots", showWarnings = FALSE)
+# Make sure we use an absolute path
+plots_dir <- file.path(getwd(), "examples", "plots")
+dir.create(plots_dir, showWarnings = FALSE, recursive = TRUE)
 
 # Generate example data for wage effects by worker skill set across different counterfactuals
 set.seed(456)
@@ -30,11 +32,11 @@ wage_data <- data.frame(
   )
 )
 
-# Melt the data for plotting
-melted_wage_data <- melt(wage_data, 
-                         id.vars = c("skill_set", "counterfactual"), 
-                         variable.name = "equilibrium_type",
-                         value.name = "wage_change")
+# Convert to long format for plotting
+melted_wage_data <- pivot_longer(wage_data,
+                                cols = starts_with("wage_change_"),
+                                names_to = "equilibrium_type",
+                                values_to = "wage_change")
 
 # Clean up the equilibrium type labels
 melted_wage_data$equilibrium_type <- gsub("wage_change_", "", melted_wage_data$equilibrium_type)
@@ -64,7 +66,7 @@ p <- ggplot(melted_wage_data, aes(x = skill_set, y = wage_change * 100, fill = e
   )
 
 # Save the plot
-ggsave("plots/wage_effects.png", p, width = 10, height = 8, dpi = 300)
+ggsave(file.path(plots_dir, "wage_effects.png"), p, width = 10, height = 8, dpi = 300)
 
 # Create heatmap data for wage effects
 county_data <- data.frame(
@@ -99,6 +101,6 @@ h <- ggplot(county_data, aes(x = county, y = skill_set, fill = reorg_wage_change
   )
 
 # Save the heatmap
-ggsave("plots/wage_effects_heatmap.png", h, width = 8, height = 6, dpi = 300)
+ggsave(file.path(plots_dir, "wage_effects_heatmap.png"), h, width = 8, height = 6, dpi = 300)
 
-cat("Wage effect plots have been generated in the 'plots' directory\n")
+cat("Wage effect plots have been generated in the '", plots_dir, "' directory\n", sep="")

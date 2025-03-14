@@ -5,7 +5,8 @@
 # Check for required packages and install if needed
 required_packages <- c("shiny", "shinydashboard", "plotly", "data.table", 
                       "lubridate", "rootSolve", "stringr", "lamW", "pracma", 
-                      "BB", "SQUAREM", "DT", "dplyr", "ggplot2", "reshape2")
+                      "BB", "SQUAREM", "DT", "dplyr", "ggplot2", "reshape2",
+                      "markdown", "rmarkdown")
 
 missing_packages <- required_packages[!required_packages %in% installed.packages()[,"Package"]]
 
@@ -18,10 +19,15 @@ if(length(missing_packages) > 0) {
 library(shiny)
 
 # Get the directory of this script
-script_dir <- dirname(normalizePath(commandArgs(trailingOnly=FALSE)[grep("--file=", commandArgs(trailingOnly=FALSE))][1]))
-
-# Set working directory to the script directory
-setwd(script_dir)
+script_path <- commandArgs(trailingOnly=FALSE)[grep("--file=", commandArgs(trailingOnly=FALSE))]
+if (length(script_path) > 0) {
+  script_dir <- dirname(normalizePath(sub("^--file=", "", script_path[1])))
+  # Set working directory to the script directory
+  setwd(script_dir)
+} else {
+  # If run via R CMD BATCH or from R directly
+  cat("Note: Running from current directory\n")
+}
 
 # Print welcome message
 cat("\n")

@@ -17,6 +17,7 @@ library(reshape2)
 
 # Source model functions
 source("model_functions.R")
+source("full_model.R")
 
 # Define global constants
 TASK_TYPES <- c("Haircut/Shave", "Color/Highlight/Wash", 

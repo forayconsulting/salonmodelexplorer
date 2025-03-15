@@ -175,8 +175,8 @@ server <- function(input, output, session) {
     # Run the model (this is where your model functions will be called)
     # For now, it returns a placeholder result
     results <- tryCatch({
-      # Call your model function here
-      run_salon_model(params)
+    # Call your model function here
+    run_full_salon_model(params)
     }, error = function(e) {
       # If there's an error, return a message
       return(list(error = TRUE, message = e$message))
